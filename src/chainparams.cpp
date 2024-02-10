@@ -126,7 +126,7 @@ public:
         // release ASAP to avoid it where possible.
 
         // HARDFORK2023 updated seed node
-        vSeeds.emplace_back("flyhash.xyz");
+        vSeeds.emplace_back("explorer.fiurycoin.online");
         vSeeds.emplace_back("nomp.flyhash.xyz");
         
 
@@ -149,7 +149,10 @@ public:
         checkpointData = {
             {
                 {  0, uint256S("0x2ecb53d29539c43cfab021da10cd23e999e8fa9097b6fde7db583dcbc92a3990")},
-                
+                {  50000, uint256S("0x8484e3f61e25530c54322931c67268beaaa78582ff8754e1015b527825766c02")},
+		{  100000, uint256S("0x93acc9c69a96d25dfb935b1da677681e43745c367d02b47242f7231a5bcf5ded")},
+		{  150000, uint256S("0x04d4f5acc6c4fcd0bd27b06f3d81a56833790dde5a83a461aa0202f319bb997c")},
+		{  200000, uint256S("0xe6de91bc78755a5f345200d9a145770778069b18897ec684d8137dafb9aa40b8")},
             }
         };
 

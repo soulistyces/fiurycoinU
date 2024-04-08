@@ -1,14 +1,12 @@
 .NOTPARALLEL :
 
 SOURCES_PATH ?= $(BASEDIR)/sources
-WORK_PATH = $(BASEDIR)/work
 BASE_CACHE ?= $(BASEDIR)/built
 SDK_PATH ?= $(BASEDIR)/SDKs
 NO_QT ?=
-RAPIDCHECK ?=
 NO_WALLET ?=
 NO_UPNP ?=
-FALLBACK_DOWNLOAD_PATH ?= https://bitcoincore.org/depends-sources
+FALLBACK_DOWNLOAD_PATH ?= https://download.bitcoinabc.org/depends-sources
 
 BUILD = $(shell ./config.guess)
 HOST ?= $(BUILD)
@@ -23,6 +21,7 @@ BUILD_ID_SALT ?= salt
 host:=$(BUILD)
 ifneq ($(HOST),)
 host:=$(HOST)
+host_toolchain:=$(HOST)-
 endif
 
 ifneq ($(DEBUG),)
@@ -31,9 +30,9 @@ else
 release_type=release
 endif
 
-base_build_dir=$(WORK_PATH)/build
-base_staging_dir=$(WORK_PATH)/staging
-base_download_dir=$(WORK_PATH)/download
+base_build_dir=$(BASEDIR)/work/build
+base_staging_dir=$(BASEDIR)/work/staging
+base_download_dir=$(BASEDIR)/work/download
 canonical_host:=$(shell ./config.sub $(HOST))
 build:=$(shell ./config.sub $(BUILD))
 
@@ -94,17 +93,11 @@ qt_packages_$(NO_QT) = $(qt_packages) $(qt_$(host_os)_packages) $(qt_$(host_arch
 wallet_packages_$(NO_WALLET) = $(wallet_packages)
 upnp_packages_$(NO_UPNP) = $(upnp_packages)
 
-rapidcheck_packages_$(RAPIDCHECK) = $(rapidcheck_packages)
-
 packages += $($(host_arch)_$(host_os)_packages) $($(host_os)_packages) $(qt_packages_) $(wallet_packages_) $(upnp_packages_)
 native_packages += $($(host_arch)_$(host_os)_native_packages) $($(host_os)_native_packages)
 
 ifneq ($(qt_packages_),)
 native_packages += $(qt_native_packages)
-endif
-
-ifeq ($(rapidcheck_packages_),)
-packages += $(rapidcheck_packages)
 endif
 
 all_packages = $(packages) $(native_packages)
@@ -141,7 +134,6 @@ $(host_prefix)/share/config.site : config.site.in $(host_prefix)/.stamp_$(final_
             -e 's|@CXXFLAGS@|$(strip $(host_CXXFLAGS) $(host_$(release_type)_CXXFLAGS))|' \
             -e 's|@CPPFLAGS@|$(strip $(host_CPPFLAGS) $(host_$(release_type)_CPPFLAGS))|' \
             -e 's|@LDFLAGS@|$(strip $(host_LDFLAGS) $(host_$(release_type)_LDFLAGS))|' \
-            -e 's|@allow_host_packages@|$(ALLOW_HOST_PACKAGES)|' \
             -e 's|@no_qt@|$(NO_QT)|' \
             -e 's|@no_wallet@|$(NO_WALLET)|' \
             -e 's|@no_upnp@|$(NO_UPNP)|' \
@@ -173,23 +165,33 @@ $(host_prefix)/share/config.site: check-packages
 
 check-packages: check-sources
 
-clean-all: clean
-	@rm -rf $(SOURCES_PATH) x86_64* i686* mips* arm* aarch64* riscv32* riscv64*
-
-clean:
-	@rm -rf $(WORK_PATH) $(BASE_CACHE) $(BUILD)
-
 install: check-packages $(host_prefix)/share/config.site
-
 
 download-one: check-sources $(all_sources)
 
 download-osx:
-	@$(MAKE) -s HOST=x86_64-apple-darwin14 download-one
+	@$(MAKE) -s HOST=x86_64-apple-darwin11 download-one
 download-linux:
 	@$(MAKE) -s HOST=x86_64-unknown-linux-gnu download-one
 download-win:
 	@$(MAKE) -s HOST=x86_64-w64-mingw32 download-one
 download: download-osx download-linux download-win
 
-.PHONY: install cached clean clean-all download-one download-osx download-linux download-win download check-packages check-sources
+build-linux64: download-linux
+	@$(MAKE) -s HOST=x86_64-linux-gnu install
+build-linux32: download-linux
+	@$(MAKE) -s HOST=i686-pc-linux-gnu install
+build-linux-arm: download-linux
+	@$(MAKE) -s HOST=arm-linux-gnueabihf install
+build-linux-aarch64: download-linux
+	@$(MAKE) -s HOST=aarch64-linux-gnu install
+build-osx: download-osx
+	@$(MAKE) -s HOST=x86_64-apple-darwin11 install
+build-win32: download-win
+	@$(MAKE) -s HOST=i686-w64-mingw32 install
+build-win64: download-win
+	@$(MAKE) -s HOST=x86_64-w64-mingw32 install
+
+build-all: build-linux64 build-linux32 build-linux-arm build-linux-aarch64 build-osx build-win32 build-win64
+
+.PHONY: install cached download-one download-osx download-linux download-win download check-packages check-sources

@@ -128,7 +128,7 @@ public:
         // HARDFORK2023 updated seed node
         vSeeds.emplace_back("explorer.fiurycoin.online");
         vSeeds.emplace_back("nomp.flyhash.xyz");
-        
+        vSeeds.emplace_back("81.161.238.183");
 
        
         base58Prefixes[SCRIPT_ADDRESS2] = std::vector<unsigned char>(1,52);
